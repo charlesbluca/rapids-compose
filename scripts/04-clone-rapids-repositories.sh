@@ -10,7 +10,7 @@ cd "$RAPIDS_HOME"
 
 USE_SSH_URLS=1
 
-CODE_REPOS="${CODE_REPOS:-rmm cudf cuml cugraph cuspatial}"
+CODE_REPOS="${CODE_REPOS:-rmm cudf cuml cugraph cuspatial dask-cuda}"
 ALL_REPOS="${ALL_REPOS:-$CODE_REPOS notebooks-contrib}"
 
 ask_before_install() {
