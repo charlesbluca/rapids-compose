@@ -60,6 +60,7 @@ services:
       - &bashrc "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.bashrc:${RAPIDS_HOME:-$PWD}/.bashrc"
       - &bash_it "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.bash_it:${RAPIDS_HOME:-$PWD}/.bash_it"
       - &gitconfig "~/.gitconfig:${RAPIDS_HOME:-$PWD}/.gitconfig"
+      - &gitcompletion "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.git-completion.bash:${RAPIDS_HOME:-$PWD}/.git-completion.bash"
       - &gnupg "~/.gnupg:${RAPIDS_HOME:-$PWD}/.gnupg"
       - &ssh "~/.ssh:${RAPIDS_HOME:-$PWD}/.ssh"
       - &colornvcc "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/colornvcc:/usr/bin/nvcc"

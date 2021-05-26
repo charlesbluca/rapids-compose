@@ -199,3 +199,6 @@ source "$BASH_IT"/bash_it.sh
 # easy bash search history
 bind '"\e[B": history-search-forward'
 bind '"\e[A": history-search-backward'
+
+# git completion
+source ~/.git-completion.bash
