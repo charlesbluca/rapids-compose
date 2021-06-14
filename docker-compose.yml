@@ -56,6 +56,7 @@ services:
       - &cugraph "${RAPIDS_HOME:-$PWD}/cugraph:${RAPIDS_HOME:-$PWD}/cugraph"
       - &cuspatial "${RAPIDS_HOME:-$PWD}/cuspatial:${RAPIDS_HOME:-$PWD}/cuspatial"
       - &dask_cuda "${RAPIDS_HOME:-$PWD}/dask-cuda:${RAPIDS_HOME:-$PWD}/dask-cuda"
+      - &ucx_py "${RAPIDS_HOME:-$PWD}/ucx-py:${RAPIDS_HOME:-$PWD}/ucx-py"
       - &condarc "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.condarc:${RAPIDS_HOME:-$PWD}/.condarc"
       - &bashrc "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.bashrc:${RAPIDS_HOME:-$PWD}/.bashrc"
       - &bash_it "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.bash_it:${RAPIDS_HOME:-$PWD}/.bash_it"
