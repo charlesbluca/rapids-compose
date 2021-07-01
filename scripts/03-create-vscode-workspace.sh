@@ -73,6 +73,18 @@ cat << EOF
             "path": "cuml/python"
         },
         {
+            "name": "raft",
+            "path": "raft"
+        },
+        {
+            "name": "raft-cpp",
+            "path": "raft/cpp"
+        },
+        {
+            "name": "raft-python",
+            "path": "raft/python"
+        },
+        {
             "name": "cuspatial",
             "path": "cuspatial"
         },

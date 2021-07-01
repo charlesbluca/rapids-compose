@@ -181,6 +181,13 @@ should-build-cuml() {
 
 export -f should-build-cuml;
 
+should-build-raft() {
+    update-environment-variables $@ >/dev/null;
+    [ "$BUILD_RAFT" == "YES" ] && echo true || echo false;
+}
+
+export -f should-build-raft;
+
 should-build-cugraph() {
     update-environment-variables $@ >/dev/null;
     [ "$BUILD_CUGRAPH" == "YES" ] && echo true || echo false;
@@ -202,6 +209,7 @@ configure-rapids() {
 Configuring RAPIDS projects: \
 RMM: $(should-build-rmm $@), \
 cuDF: $(should-build-cudf $@), \
+raft: $(should-build-raft $@), \
 cuML: $(should-build-cuml $@), \
 cuGraph: $(should-build-cugraph $@), \
 cuSpatial: $(should-build-cuspatial $@)";
@@ -225,10 +233,12 @@ cuGraph: $(should-build-cugraph $@), \
 cuSpatial: $(should-build-cuspatial $@)";
         if [ $(should-build-rmm) == true ]; then build-rmm-cpp $@ || exit 1; fi;
         if [ $(should-build-cudf) == true ]; then build-cudf-cpp $@ || exit 1; fi;
+        if [ $(should-build-raft) == true ]; then build-raft-cpp $@ || exit 1; fi;
         if [ $(should-build-cuml) == true ]; then build-cuml-cpp $@ || exit 1; fi;
         if [ $(should-build-cugraph) == true ]; then build-cugraph-cpp $@ || exit 1; fi;
         if [ $(should-build-cuspatial) == true ]; then build-cuspatial-cpp $@ || exit 1; fi;
         if [ $(should-build-rmm) == true ]; then build-rmm-python $@ || exit 1; fi;
+        if [ $(should-build-raft) == true ]; then build-raft-python $@ || exit 1; fi;
         if [ $(should-build-cudf) == true ]; then build-cudf-python $@ || exit 1; fi;
         if [ $(should-build-cuml) == true ]; then build-cuml-python $@ || exit 1; fi;
         if [ $(should-build-cugraph) == true ]; then build-cugraph-python $@ || exit 1; fi;
@@ -245,6 +255,7 @@ clean-rapids() {
 Cleaning RAPIDS projects: \
 RMM: $(should-build-rmm $@), \
 cuDF: $(should-build-cudf $@), \
+raft: $(should-build-raft $@), \
 cuML: $(should-build-cuml $@), \
 cuGraph: $(should-build-cugraph $@), \
 cuSpatial: $(should-build-cuspatial $@)";
@@ -258,11 +269,13 @@ cuSpatial: $(should-build-cuspatial $@)";
 
         run-in-background "if [ \$(should-build-rmm) == true ]; then clean-rmm-cpp $@; fi"
         run-in-background "if [ \$(should-build-cudf) == true ]; then clean-cudf-cpp $@; fi"
+        run-in-background "if [ \$(should-build-raft) == true ]; then clean-raft-cpp $@; fi"
         run-in-background "if [ \$(should-build-cuml) == true ]; then clean-cuml-cpp $@; fi"
         run-in-background "if [ \$(should-build-cugraph) == true ]; then clean-cugraph-cpp $@; fi"
         run-in-background "if [ \$(should-build-cuspatial) == true ]; then clean-cuspatial-cpp $@; fi"
         run-in-background "if [ \$(should-build-rmm) == true ]; then clean-rmm-python $@; fi"
         run-in-background "if [ \$(should-build-cudf) == true ]; then clean-cudf-python $@; fi"
+         run-in-background "if [ \$(should-build-raft) == true ]; then clean-raft-python $@; fi"
         run-in-background "if [ \$(should-build-cuml) == true ]; then clean-cuml-python $@; fi"
         run-in-background "if [ \$(should-build-cugraph) == true ]; then clean-cugraph-python $@; fi"
         run-in-background "if [ \$(should-build-cuspatial) == true ]; then clean-cuspatial-python $@; fi"
@@ -284,11 +297,13 @@ lint-rapids() {
 Linting RAPIDS projects: \
 RMM: $(should-build-rmm $@), \
 cuDF: $(should-build-cudf $@), \
+raft: $(should-build-raft $@), \
 cuML: $(should-build-cuml $@), \
 cuGraph: $(should-build-cugraph $@), \
 cuSpatial: $(should-build-cuspatial $@)";
         if [ $(should-build-rmm) == true ]; then lint-rmm-cpp $@ && lint-rmm-python $@ || exit 1; fi
         if [ $(should-build-cudf) == true ]; then lint-cudf-cpp $@ && lint-cudf-python $@ || exit 1; fi
+        if [ $(should-build-raft) == true ]; then lint-raft-cpp $@ && lint-raft-python $@ || exit 1; fi
         if [ $(should-build-cuml) ]; then lint-cuml-cpp $@ && lint-cuml-python $@ || exit 1; fi
         if [ $(should-build-cugraph) ]; then lint-cugraph-cpp $@ && lint-cugraph-python $@ || exit 1; fi
         if [ $(should-build-cuspatial) ]; then lint-cuspatial-cpp $@ && lint-cuspatial-python $@ || exit 1; fi
@@ -329,20 +344,6 @@ export -f configure-cudf-cpp;
 build-cudf-cpp() {
     configure-cudf-cpp "$@"
 
-    if [[ -f "$CUDF_HOME/python/nvstrings/setup.py" ]]; then
-        print-heading "Building libnvstrings";
-
-        [ "$BUILD_TESTS" != "ON" ] && \
-            BUILD_TARGETS="nvstrings" || \
-            BUILD_TARGETS="nvstrings build_tests_nvstrings";
-
-        # temporary:
-        # build nvstrings cpp and python before building libcudf, since
-        # libcudf depends on libnvstrings having already been built
-        build-cpp "$CUDF_HOME/cpp" "$BUILD_TARGETS";
-        build-nvstrings-python $@;
-    fi
-
     print-heading "Building libcudf";
 
     build-cpp "$CUDF_HOME/cpp" "all";
@@ -375,6 +376,16 @@ build-cudf-java() {
 }
 
 export -f build-cudf-java;
+
+build-raft-cpp() {
+    update-environment-variables $@ >/dev/null;
+    print-heading "Configuring libraft";
+    configure-cpp "$RAFT_HOME/cpp" $@ -DBUILD_GTEST=ON;
+    print-heading "Building libraft";
+    build-cpp "$RAFT_HOME/cpp" "all";
+}
+
+export -f build-raft-cpp;
 
 configure-cuml-cpp() {
     config_args="$@"
@@ -442,23 +453,6 @@ build-rmm-python() {
 
 export -f build-rmm-python;
 
-build-nvstrings-python() {
-    nvstrings_py_dir="$CUDF_HOME/python/nvstrings";
-    if [[ -f "$nvstrings_py_dir/setup.py" ]]; then
-        update-environment-variables $@ >/dev/null;
-        print-heading "Building nvstrings";
-        cfile=$(find "$nvstrings_py_dir/build" -type f -name 'CMakeCache.txt' 2> /dev/null | head -n1);
-        [ -z "$(grep $CUDA_VERSION "$cfile" 2> /dev/null)" ] && rm -rf "$nvstrings_py_dir/build";
-
-        PARALLEL_LEVEL=1 \
-        build-python "$nvstrings_py_dir" \
-            --build-lib="$nvstrings_py_dir" \
-            --library-dir="$NVSTRINGS_ROOT" ;
-    fi
-}
-
-export -f build-nvstrings-python;
-
 build-cudf-python() {
     update-environment-variables $@ >/dev/null;
     print-heading "Building cudf";
@@ -466,6 +460,14 @@ build-cudf-python() {
 }
 
 export -f build-cudf-python;
+
+build-raft-python() {
+    update-environment-variables $@ >/dev/null;
+    print-heading "Building raft";
+    build-python "$RAFT_HOME/python" --inplace;
+}
+
+export -f build-raft-python;
 
 build-cuml-python() {
     update-environment-variables $@ >/dev/null;
@@ -503,15 +505,6 @@ clean-cudf-cpp() {
     update-environment-variables $@ >/dev/null;
     print-heading "Cleaning libcudf";
     rm -rf "$CUDF_ROOT_ABS";
-    if [[ -f "$CUDF_HOME/python/nvstrings/setup.py" ]]; then
-        rm -rf "$CUDF_HOME/python/nvstrings/dist" \
-               "$CUDF_HOME/python/nvstrings/build" \
-               "$CUDF_HOME/python/nvstrings/.hypothesis" \
-               "$CUDF_HOME/python/nvstrings/.pytest_cache";
-        find "$CUDF_HOME/python/nvstrings" -type f -name '*.so' -delete;
-        find "$CUDF_HOME/python/nvstrings" -type f -name '*.pyc' -delete;
-        find "$CUDF_HOME/python/nvstrings" -type d -name '__pycache__' -delete;
-    fi
 }
 
 export -f clean-cudf-cpp;
@@ -527,6 +520,14 @@ clean-cudf-java() {
 }
 
 export -f clean-cudf-java;
+
+clean-raft-cpp() {
+    update-environment-variables $@ >/dev/null;
+    print-heading "Cleaning libraft";
+    rm -rf "$RAFT_ROOT_ABS";
+}
+
+export -f clean-raft-cpp;
 
 clean-cuml-cpp() {
     update-environment-variables $@ >/dev/null;
@@ -583,6 +584,23 @@ clean-cudf-python() {
 
 export -f clean-cudf-python;
 
+clean-raft-python() {
+    update-environment-variables $@ >/dev/null;
+    print-heading "Cleaning raft";
+    rm -rf "$RAFT_HOME/python/dist" \
+           "$RAFT_HOME/python/build" \
+           "$RAFT_HOME/python/.hypothesis" \
+           "$RAFT_HOME/python/.pytest_cache" \
+           "$CUML_HOME/python/cuml/raft" \
+           "$CUGRAPH_HOME/python/cugraph/raft";
+    find "$RAFT_HOME" -type f -name '*.pyc' -delete;
+    find "$RAFT_HOME" -type d -name '__pycache__' -delete;
+    find "$RAFT_HOME/python/raft" -type f -name '*.so' -delete;
+    find "$RAFT_HOME/python/raft" -type f -name '*.cpp' -delete;
+}
+
+export -f clean-raft-python;
+
 clean-cuml-python() {
     update-environment-variables $@ >/dev/null;
     print-heading "Cleaning cuml";
@@ -591,7 +609,8 @@ clean-cuml-python() {
            "$CUML_HOME/python/cuml/raft" \
            "$CUML_HOME/python/.hypothesis" \
            "$CUML_HOME/python/.pytest_cache" \
-           "$CUML_HOME/python/_external_repositories";
+           "$CUML_HOME/python/_external_repositories" \
+           "$CUML_HOME/python/dask-worker-space";
     find "$CUML_HOME" -type f -name '*.pyc' -delete;
     find "$CUML_HOME" -type d -name '__pycache__' -delete;
     find "$CUML_HOME/python/cuml" -type f -name '*.so' -delete;
@@ -608,7 +627,8 @@ clean-cugraph-python() {
            "$CUGRAPH_HOME/python/.hypothesis" \
            "$CUGRAPH_HOME/python/cugraph/raft" \
            "$CUGRAPH_HOME/python/.pytest_cache" \
-           "$CUGRAPH_HOME/python/_external_repositories";
+           "$CUGRAPH_HOME/python/_external_repositories" \
+           "$CUGRAPH_HOME/python/dask-worker-space";
     find "$CUGRAPH_HOME" -type f -name '*.pyc' -delete;
     find "$CUGRAPH_HOME" -type d -name '__pycache__' -delete;
     find "$CUGRAPH_HOME/python/cugraph" -type f -name '*.so' -delete;
@@ -650,6 +670,14 @@ docs-cudf-cpp() {
 
 export -f docs-cudf-cpp;
 
+docs-raft-cpp() {
+    ARGS="$(update-environment-variables $@)";
+    print-heading "Generating docs for libraft";
+    docs-cpp "$RAFT_HOME" "doc" "$RAFT_ROOT_ABS/html" $ARGS;
+}
+
+export -f docs-raft-cpp;
+
 docs-cuml-cpp() {
     ARGS="$(update-environment-variables $@)";
     print-heading "Generating docs for libcuml";
@@ -690,6 +718,14 @@ docs-cudf-python() {
 
 export -f docs-cudf-python;
 
+docs-raft-python() {
+    ARGS="$(update-environment-variables $@)";
+    print-heading "Generating docs for raft";
+    docs-python "$RAFT_HOME/docs" "html" $ARGS;
+}
+
+export -f docs-raft-python;
+
 docs-cuml-python() {
     ARGS="$(update-environment-variables $@)";
     print-heading "Generating docs for cuml";
@@ -726,6 +762,12 @@ lint-cudf-cpp() {
 
 export -f lint-cudf-cpp;
 
+lint-raft-cpp() {
+    print-heading "Linting libraft" && lint-cpp "$RAFT_HOME";
+}
+
+export -f lint-raft-cpp;
+
 lint-cuml-cpp() {
     print-heading "Linting libcuml" && lint-cpp "$CUML_HOME";
 }
@@ -755,6 +797,12 @@ lint-cudf-python() {
 }
 
 export -f lint-cudf-python;
+
+lint-raft-python() {
+    print-heading "Linting raft" && lint-python "$RAFT_HOME" --flake8;
+}
+
+export -f lint-raft-python;
 
 lint-cuml-python() {
     print-heading "Linting cuml" && lint-python "$CUML_HOME" --flake8;
@@ -798,6 +846,12 @@ test-cudf-java() {
 
 export -f test-cudf-java;
 
+test-raft-cpp() {
+    cd "$(find-cpp-build-home $RAFT_HOME)" && ./test_raft;
+}
+
+export -f test-raft-cpp;
+
 test-cuml-cpp() {
     test-cpp "$(find-cpp-build-home $CUML_HOME)" $@;
 }
@@ -839,6 +893,12 @@ test-dask-cuda-python() {
 }
 
 export -f test-dask-cuda-python;
+
+test-raft-python() {
+    test-python "$RAFT_HOME/python" $@;
+}
+
+export -f test-raft-python;
 
 test-cuml-python() {
     test-python "$CUML_HOME/python" $@;
@@ -886,15 +946,12 @@ configure-cpp() {
             -D CUML_LIBRARY=${CUML_LIBRARY}
             -D CUGRAPH_LIBRARY=${CUGRAPH_LIBRARY}
             -D CUSPATIAL_LIBRARY=${CUSPATIAL_LIBRARY}
-            -D NVSTRINGS_LIBRARY=${NVSTRINGS_LIBRARY}
-            -D NVCATEGORY_LIBRARY=${NVCATEGORY_LIBRARY}
             -D NVTEXT_LIBRARY=${NVTEXT_LIBRARY}
             -D RMM_INCLUDE=${RMM_INCLUDE}
             -D CUDF_INCLUDE=${CUDF_INCLUDE}
             -D CUDF_TEST_INCLUDE=${CUDF_TEST_INCLUDE}
             -D CUML_INCLUDE_DIR=${CUML_INCLUDE}
             -D DLPACK_INCLUDE=${COMPOSE_INCLUDE}
-            -D NVSTRINGS_INCLUDE=${NVSTRINGS_INCLUDE}
             -D CUGRAPH_INCLUDE=${CUGRAPH_INCLUDE}
             -D CUSPATIAL_INCLUDE=${CUSPATIAL_INCLUDE}
             -D PARALLEL_LEVEL=${PARALLEL_LEVEL}
@@ -908,11 +965,13 @@ configure-cpp() {
             -D rmm_ROOT=${RMM_ROOT} -D RMM_ROOT=${RMM_ROOT}
             -D cudf_ROOT=${CUDF_ROOT} -D CUDF_ROOT=${CUDF_ROOT}
             -D cuml_ROOT=${CUML_ROOT} -D CUML_ROOT=${CUML_ROOT}
+            -D raft_ROOT=${RAFT_ROOT} -D RAFT_ROOT=${RAFT_ROOT}
             -D cugraph_ROOT=${CUGRAPH_ROOT} -D CUGRAPH_ROOT=${CUGRAPH_ROOT}
             -D cuspatial_ROOT=${CUSPATIAL_ROOT} -D CUSPATIAL_ROOT=${CUSPATIAL_ROOT}
             -D CPM_rmm_SOURCE=$(find-cpp-build-home ${RMM_HOME})
             -D CPM_cudf_SOURCE=$(find-cpp-build-home ${CUDF_HOME})
             -D CPM_cuml_SOURCE=$(find-cpp-build-home ${CUML_HOME})
+            -D CPM_raft_SOURCE=$(find-cpp-build-home ${RAFT_HOME})
             -D CPM_cugraph_SOURCE=$(find-cpp-build-home ${CUGRAPH_HOME})
             -D CPM_cuspatial_SOURCE=$(find-cpp-build-home ${CUSPATIAL_HOME})";
 
@@ -966,6 +1025,7 @@ configure-cpp() {
         CFLAGS="$CMAKE_C_FLAGS"                                              \
         CXXFLAGS="$CMAKE_CXX_FLAGS"                                          \
         CUDAFLAGS="$CMAKE_CUDA_FLAGS"                                        \
+        RAFT_PATH="$RAFT_HOME" RAFT_INCLUDE_DIR="$RAFT_INCLUDE"              \
         cmake -B "$BUILD_DIR"                                                \
               -S "$PROJECT_CPP_HOME"                                         \
               -G "$CMAKE_GENERATOR"                                          \
@@ -1005,6 +1065,8 @@ build-python() {
         fi;
         export CONDA_PREFIX_="$CONDA_PREFIX"; unset CONDA_PREFIX;
         time env CFLAGS="$CFLAGS_" \
+             RAFT_PATH="$RAFT_HOME" \
+             RAFT_INCLUDE_DIR="$RAFT_INCLUDE" \
              CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CFLAGS_" \
              python setup.py build_ext -j${PARALLEL_LEVEL} ${@:2};
         export CONDA_PREFIX="$CONDA_PREFIX_"; unset CONDA_PREFIX_;
@@ -1448,6 +1510,7 @@ find-project-home() {
     $RMM_HOME
     $CUDF_HOME
     $CUML_HOME
+    $RAFT_HOME
     $CUGRAPH_HOME
     $CUSPATIAL_HOME
     $NOTEBOOKS_CONTRIB_HOME";
@@ -1515,6 +1578,7 @@ update-environment-variables() {
     build_rmm=
     build_cudf=
     build_cuml=
+    build_raft=
     build_cugraph=
     build_cuspatial=
     while [[ "$#" -gt 0 ]]; do
@@ -1525,6 +1589,7 @@ update-environment-variables() {
             -r|--release) btype="${btype:-Release}";;
             --rmm) build_rmm="${build_rmm:-YES}";;
             --cudf) build_cudf="${build_cudf:-YES}";;
+            --raft) build_raft="${build_raft:-YES}";;
             --cuml) build_cuml="${build_cuml:-YES}";;
             --cugraph) build_cugraph="${build_cugraph:-YES}";;
             --cuspatial) build_cuspatial="${build_cuspatial:-YES}";;
@@ -1534,6 +1599,7 @@ update-environment-variables() {
     export BUILD_RMM="${build_rmm:-$BUILD_RMM}"
     export BUILD_CUDF="${build_cudf:-$BUILD_CUDF}"
     export BUILD_CUML="${build_cuml:-$BUILD_CUML}"
+    export BUILD_RAFT="${build_raft:-$BUILD_RAFT}"
     export BUILD_CUGRAPH="${build_cugraph:-$BUILD_CUGRAPH}"
     export BUILD_CUSPATIAL="${build_cuspatial:-$BUILD_CUSPATIAL}"
     export BUILD_TESTS="${tests:-$BUILD_TESTS}";
@@ -1542,7 +1608,7 @@ update-environment-variables() {
 
     export RMM_ROOT_ABS="$RMM_HOME/$(cpp-build-dir $RMM_HOME)"
     export CUDF_ROOT_ABS="$CUDF_HOME/cpp/$(cpp-build-dir $CUDF_HOME)"
-    export NVSTRINGS_ROOT_ABS="$CUDF_HOME/cpp/$(cpp-build-dir $CUDF_HOME)"
+    export RAFT_ROOT_ABS="$RAFT_HOME/cpp/$(cpp-build-dir $RAFT_HOME)"
     export CUML_ROOT_ABS="$CUML_HOME/cpp/$(cpp-build-dir $CUML_HOME)"
     export CUGRAPH_ROOT_ABS="$CUGRAPH_HOME/cpp/$(cpp-build-dir $CUGRAPH_HOME)"
     export CUSPATIAL_ROOT_ABS="$CUSPATIAL_HOME/cpp/$(cpp-build-dir $CUSPATIAL_HOME)"
