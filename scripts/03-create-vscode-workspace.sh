@@ -93,10 +93,6 @@ cat << EOF
             "path": "cuspatial/python/cuspatial"
         },
         {
-            "name": "ucx-py",
-            "path": "ucx-py"
-        },
-        {
             "name": "notebooks-contrib",
             "path": "notebooks-contrib"
         }
