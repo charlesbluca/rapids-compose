@@ -45,10 +45,6 @@ cat << EOF
             "path": "cudf/python/dask_cudf"
         },
         {
-            "name": "dask-cuda",
-            "path": "dask-cuda"
-        },
-        {
             "name": "cugraph",
             "path": "cugraph"
         },

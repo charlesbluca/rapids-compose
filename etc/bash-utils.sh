@@ -888,12 +888,6 @@ test-dask-cudf-python() {
 
 export -f test-dask-cudf-python;
 
-test-dask-cuda-python() {
-    test-python $DASK_CUDA_HOME $@;
-}
-
-export -f test-dask-cuda-python;
-
 test-raft-python() {
     test-python "$RAFT_HOME/python" $@;
 }
