@@ -54,7 +54,7 @@ cat << EOF
         },
         {
             "name": "cugraph-python",
-            "path": "cugraph/python"
+            "path": "cugraph/python/cugraph"
         },
         {
             "name": "cuML",
@@ -257,9 +257,14 @@ cat << EOF
             "**/build/bdist.linux-x86_64*": true
         },
         "terminal.integrated.automationShell.linux": "/bin/bash",
-        "terminal.integrated.shell.linux": "/bin/bash",
         "terminal.integrated.enableFileLinks": true,
-        "terminal.integrated.shellArgs.linux": ["-c", "rapids_container=\$(docker ps | grep rapidsai/\$(whoami)/rapids | cut -d\" \" -f1 || echo \"\"); if [ \"\$rapids_container\" == \"\" ]; then exec \$SHELL; else exec docker exec -u \${UID}:\${GID} -it -w \"\$PWD\" \"\$rapids_container\" bash -li; fi"],
+        "terminal.integrated.profiles.linux": {
+            "bash": {
+                "path": "bash",
+                "icon": "terminal-bash",
+                "args": ["-c", "rapids_container=\$(docker ps | grep rapidsai/\$(whoami)/rapids | cut -d\" \" -f1 || echo \"\"); if [ \"\$rapids_container\" == \"\" ]; then exec \$SHELL; else exec docker exec -u \${UID}:\${GID} -it -w \"\$PWD\" \"\$rapids_container\" bash -li; fi"]
+            }
+        },
     },
     "tasks": {
         "version": "2.0.0",
