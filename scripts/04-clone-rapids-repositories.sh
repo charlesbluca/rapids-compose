@@ -23,21 +23,6 @@ RAPIDS_REPOS="${RAPIDS_REPOS:-rmm
 DASK_REPOS="${DASK_REPOS:-dask distributed}"
 DASK_CONTRIB_REPOS="${DASK_CONTRIB_REPOS:-dask-sql}"
 UCX_REPOS="${UCX_REPOS:-ucx}"
-# CODE_REPOS="${CODE_REPOS:-rmm
-#                           raft \
-#                           cudf 
-#                           cuml 
-#                           cugraph 
-#                           cuspatial 
-#                           dask 
-#                           distributed 
-#                           dask-sql 
-#                           dask-cuda 
-#                           dask-build-environment 
-#                           gpuci-scripts 
-#                           ucx 
-#                           ucx-py}"
-# ALL_REPOS="${ALL_REPOS:-$CODE_REPOS notebooks-contrib}"
 
 ask_before_install() {
     while true; do
@@ -180,18 +165,6 @@ maybe_clone_or_fork_repo() {
 }
 
 CLONED_SOMETHING="NO"
-
-# for REPO in $ALL_REPOS; do
-#     # Clone if doesn't exist
-#     if [ ! -d "$RAPIDS_HOME/$REPO" ]; then
-#         if [ "$GITHUB_USER" = "" ]; then
-#             read_github_username;
-#             read_git_remote_url_ssh_preference;
-#         fi
-#         clone_or_fork_repo $REPO
-#         CLONED_SOMETHING="YES"
-#     fi
-# done
 
 for REPO in $RAPIDS_REPOS "notebooks-contrib"; do
     maybe_clone_or_fork_repo $REPO "rapidsai"
