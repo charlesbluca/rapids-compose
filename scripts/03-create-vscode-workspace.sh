@@ -93,6 +93,38 @@ cat << EOF
             "path": "cuspatial/python/cuspatial"
         },
         {
+            "name": "dask",
+            "path": "dask"
+        },
+        {
+            "name": "distributed",
+            "path": "distributed"
+        },
+        {
+            "name": "dask-sql",
+            "path": "dask-sql"
+        },
+        {
+            "name": "dask-cuda",
+            "path": "dask-cuda"
+        },
+        {
+            "name": "dask-build-environment",
+            "path": "dask-build-environment"
+        },
+        {
+            "name": "gpuci-scripts",
+            "path": "gpuci-scripts"
+        },
+        {
+            "name": "ucx",
+            "path": "ucx"
+        },
+        {
+            "name": "ucx-py",
+            "path": "ucx-py"
+        },
+        {
             "name": "notebooks-contrib",
             "path": "notebooks-contrib"
         }

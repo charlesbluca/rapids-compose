@@ -4,7 +4,20 @@ set -Eeo pipefail
 
 cd $(dirname "$(realpath "$0")")/../../
 
-CODE_REPOS="${CODE_REPOS:-rmm raft cudf cuml cugraph cuspatial}"
+CODE_REPOS="${CODE_REPOS:-rmm
+                          raft \
+                          cudf 
+                          cuml 
+                          cugraph 
+                          cuspatial 
+                          dask 
+                          distributed 
+                          dask-sql 
+                          dask-cuda 
+                          dask-build-environment 
+                          gpuci-scripts 
+                          ucx 
+                          ucx-py}"
 
 # Setup C++
 for REPO in $CODE_REPOS; do

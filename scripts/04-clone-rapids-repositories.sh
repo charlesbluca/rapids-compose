@@ -10,8 +10,34 @@ cd "$RAPIDS_HOME"
 
 USE_SSH_URLS=1
 
-CODE_REPOS="${CODE_REPOS:-rmm raft cudf cuml cugraph cuspatial}"
-ALL_REPOS="${ALL_REPOS:-$CODE_REPOS notebooks-contrib}"
+RAPIDS_REPOS="${RAPIDS_REPOS:-rmm
+					          raft \
+					          cudf
+					          cuml
+					          cugraph
+					          cuspatial
+					          dask-cuda
+					          dask-build-environment
+					          gpuci-scripts
+					          ucx-py}"
+DASK_REPOS="${DASK_REPOS:-dask distributed}"
+DASK_CONTRIB_REPOS="${DASK_CONTRIB_REPOS:-dask-sql}"
+UCX_REPOS="${UCX_REPOS:-ucx}"
+# CODE_REPOS="${CODE_REPOS:-rmm
+#                           raft \
+#                           cudf 
+#                           cuml 
+#                           cugraph 
+#                           cuspatial 
+#                           dask 
+#                           distributed 
+#                           dask-sql 
+#                           dask-cuda 
+#                           dask-build-environment 
+#                           gpuci-scripts 
+#                           ucx 
+#                           ucx-py}"
+# ALL_REPOS="${ALL_REPOS:-$CODE_REPOS notebooks-contrib}"
 
 ask_before_install() {
     while true; do
@@ -59,12 +85,14 @@ install_github_cli() {
 
 clone_repo() {
     REPO="$1"
+    UPSTREAM="$2"
     git clone --no-tags -c checkout.defaultRemote=upstream -j $(nproc) \
-        --recurse-submodules https://github.com/rapidsai/$REPO.git
+        --recurse-submodules https://github.com/$UPSTREAM/$REPO.git
 }
 
 fork_repo() {
     REPO="$1"
+    UPSTREAM="$2"
     if [[ "$(which hub)" == "" ]]; then
         # Install github cli if it isn't installed
         ask_before_install "Github CLI not detected. Install Github CLI (y/n)?" "install_github_cli"
@@ -72,7 +100,7 @@ fork_repo() {
     if [[ "$(which hub)" != "" ]]; then
         echo "Forking rapidsai/$REPO to $GITHUB_USER/$REPO";
         # Clone the rapidsai fork first
-        clone_repo "$REPO";
+        clone_repo "$REPO" "$UPSTREAM";
         cd "$REPO";
         hub fork --remote-name=origin;
         cd - >/dev/null 2>&1;
@@ -81,24 +109,25 @@ fork_repo() {
 
 clone_or_fork_repo() {
     REPO="$1"
+    UPSTREAM="$2"
     HAS_FORK="NO"
 
     # Clone and/or fork the repo
     if [ "$GITHUB_USER" == "rapidsai" ]; then
         # If default user, clone the rapidsai fork
-        clone_repo "$REPO";
+        clone_repo "$REPO" "$UPSTREAM";
     else
         REPO_RESPONSE_CODE="$(curl -I https://github.com/$GITHUB_USER/$REPO 2>/dev/null | head -n 1 | cut -d$' ' -f2)"
         if [ "$REPO_RESPONSE_CODE" = "403" ] || [ "$REPO_RESPONSE_CODE" = "200" ]; then
             HAS_FORK="YES";
             # Clone the rapidsai fork first
-            clone_repo "$REPO";
+            clone_repo "$REPO" "$UPSTREAM";
         else
             # If the user doesn't have a fork of this repo yet, offer to fork it now
-            ask_before_install "github.com/$GITHUB_USER/$REPO not found. Fork it now (y/n)?" "fork_repo $REPO"
+            ask_before_install "github.com/$GITHUB_USER/$REPO not found. Fork it now (y/n)?" "fork_repo $REPO $UPSTREAM"
             # If they declined to fork or to install the github cli, clone the rapidsai fork
             if [ ! -d "$RAPIDS_HOME/$REPO" ]; then
-                clone_repo "$REPO";
+                clone_repo "$REPO" "$UPSTREAM";
             else
                 HAS_FORK="YES";
             fi
@@ -110,9 +139,9 @@ clone_or_fork_repo() {
     if [ -z "$(git remote show | grep upstream)" ]; then
         # Always add an "upstream" remote that points to rapidsai
         if [[ "$USE_SSH_URLS" == "1" ]]; then
-            git remote add -f --tags upstream git@github.com:rapidsai/$REPO.git
+            git remote add -f --tags upstream git@github.com:$UPSTREAM/$REPO.git
         else
-            git remote add -f --tags upstream https://github.com/rapidsai/$REPO.git
+            git remote add -f --tags upstream https://github.com/$UPSTREAM/$REPO.git
         fi
     fi
     if [[ "$HAS_FORK" == "YES" ]]; then
@@ -125,9 +154,9 @@ clone_or_fork_repo() {
     else
         # If not using a user fork, still add an origin, but make it read-only
         if [[ "$USE_SSH_URLS" == "1" ]]; then
-            git remote set-url origin git@github.com:rapidsai/$REPO.git
+            git remote set-url origin git@github.com:$UPSTREAM/$REPO.git
         else
-            git remote set-url origin https://github.com/rapidsai/$REPO.git
+            git remote set-url origin https://github.com/$UPSTREAM/$REPO.git
         fi
         git remote set-url --push origin read_only
     fi
@@ -135,18 +164,46 @@ clone_or_fork_repo() {
     cd - >/dev/null 2>&1
 }
 
-CLONED_SOMETHING="NO"
-
-for REPO in $ALL_REPOS; do
+maybe_clone_or_fork_repo() {
+    REPO="$1"
+    UPSTREAM="$2"
     # Clone if doesn't exist
+    echo "$RAPIDS_HOME/$REPO"
     if [ ! -d "$RAPIDS_HOME/$REPO" ]; then
         if [ "$GITHUB_USER" = "" ]; then
             read_github_username;
             read_git_remote_url_ssh_preference;
         fi
-        clone_or_fork_repo $REPO
+        clone_or_fork_repo $REPO $UPSTREAM
         CLONED_SOMETHING="YES"
     fi
+}
+
+CLONED_SOMETHING="NO"
+
+# for REPO in $ALL_REPOS; do
+#     # Clone if doesn't exist
+#     if [ ! -d "$RAPIDS_HOME/$REPO" ]; then
+#         if [ "$GITHUB_USER" = "" ]; then
+#             read_github_username;
+#             read_git_remote_url_ssh_preference;
+#         fi
+#         clone_or_fork_repo $REPO
+#         CLONED_SOMETHING="YES"
+#     fi
+# done
+
+for REPO in $RAPIDS_REPOS "notebooks-contrib"; do
+    maybe_clone_or_fork_repo $REPO "rapidsai"
+done
+for REPO in $DASK_REPOS; do
+    maybe_clone_or_fork_repo $REPO "dask"
+done
+for REPO in $DASK_CONTRIB_REPOS; do
+    maybe_clone_or_fork_repo $REPO "dask-contrib"
+done
+for REPO in $UCX_REPOS; do
+    maybe_clone_or_fork_repo $REPO "openucx"
 done
 
 if [[ "$CLONED_SOMETHING" == "YES" ]]; then

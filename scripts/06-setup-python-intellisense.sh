@@ -14,7 +14,12 @@ PYTHON_DIRS="${PYTHON_DIRS:-rmm/python
                             cugraph/python
                             cudf/python/cudf
                             cudf/python/dask_cudf
-                            cuspatial/python/cuspatial}"
+                            cuspatial/python/cuspatial
+                            dask
+                            distributed
+                            dask-sql
+                            dask-cuda
+                            ucx-py}"
 
 cat << EOF > "$COMPOSE_HOME/etc/rapids/.vscode/python-settings.json"
 {
@@ -28,6 +33,11 @@ cat << EOF > "$COMPOSE_HOME/etc/rapids/.vscode/python-settings.json"
         "$RAPIDS_HOME/cuml/python",
         "$RAPIDS_HOME/cugraph/python",
         "$RAPIDS_HOME/cuspatial/python/cuspatial",
+        "$RAPIDS_HOME/dask",
+        "$RAPIDS_HOME/distributed",
+        "$RAPIDS_HOME/dask-sql",
+        "$RAPIDS_HOME/dask-cuda",
+        "$RAPIDS_HOME/ucx-py",
     ],
     "python.languageServer": "Pylance",
     "python.condaPath": "$COMPOSE_HOME/etc/conda/bin/conda",

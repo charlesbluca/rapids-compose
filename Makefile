@@ -133,7 +133,23 @@ dc:
 		docker-compose -f $(file) $(cmd) $(cmd_args) $(svc) $(svc_args)
 
 init:
-	export CODE_REPOS="rmm raft cudf cuml cugraph cuspatial" && \
+	export RAPIDS_REPOS="rmm \
+					     raft \
+					     cudf \
+					     cuml \
+					     cugraph \
+					     cuspatial \
+					     dask-cuda \
+					     dask-build-environment \
+					     gpuci-scripts \
+					     ucx-py" && \
+	export DASK_REPOS="dask distributed" && \
+	export DASK_CONTRIB_REPOS="dask-sql" && \
+	export UCX_REPOS="ucx" && \
+	export CODE_REPOS="$$RAPIDS_REPOS \
+					   $$DASK_REPOS \
+					   $$DASK_CONTRIB_REPOS \
+					   $$UCX_REPOS" && \
 	export ALL_REPOS="$$CODE_REPOS notebooks-contrib" && \
 	export PYTHON_DIRS="rmm/python \
 						raft/python \
@@ -141,7 +157,12 @@ init:
 						cugraph/python \
 						cudf/python/cudf \
 						cudf/python/dask_cudf \
-						cuspatial/python/cuspatial" && \
+						cuspatial/python/cuspatial \
+						dask \
+						distributed \
+						dask-sql \
+						dask-cuda \
+						ucx-py" && \
 	touch ./etc/rapids/.bash_history;
 	source ./scripts/01-install-dependencies.sh;
 	bash -i ./scripts/02-create-compose-env.sh;
