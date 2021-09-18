@@ -153,7 +153,6 @@ maybe_clone_or_fork_repo() {
     REPO="$1"
     UPSTREAM="$2"
     # Clone if doesn't exist
-    echo "$RAPIDS_HOME/$REPO"
     if [ ! -d "$RAPIDS_HOME/$REPO" ]; then
         if [ "$GITHUB_USER" = "" ]; then
             read_github_username;
