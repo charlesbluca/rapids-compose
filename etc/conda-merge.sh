@@ -24,6 +24,21 @@ dependencies:
   - ptvsd
 EOF
 
+# UCX source requirements
+cat << EOF > ucx.yml
+name: ucx
+channels:
+- conda-forge
+dependencies:
+- automake
+- make
+- libtool
+- pkg-config
+- psutil
+- setuptools
+- cython>=0.29.14,<3.0.0a0
+EOF
+
 # workaround until https://github.com/dask-contrib/dask-sql/pull/238 is merged
 cat << EOF > dask-sql.yml
 name: dask-sql
@@ -96,6 +111,7 @@ if [ $(should-build-cuml)      == true ]; then echo -e "$(replace-env-cuda-toolk
 if [ $(should-build-cugraph)   == true ]; then echo -e "$(replace-env-cuda-toolkit-version cugraph)"   > cugraph.yml   && YMLS+=(cugraph.yml);   fi;
 if [ $(should-build-cuspatial) == true ]; then echo -e "$(replace-env-cuda-toolkit-version cuspatial)" > cuspatial.yml && YMLS+=(cuspatial.yml); fi;
 YMLS+=(dask-sql.yml)  # workaround until https://github.com/dask-contrib/dask-sql/pull/238 is merged
+YMLS+=(ucx.yml)
 YMLS+=(rapids.yml)
 conda-merge ${YMLS[@]} > merged.yml
 
