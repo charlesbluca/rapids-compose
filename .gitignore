@@ -2,6 +2,7 @@
 **/z-*
 **/etc/llvm
 **/etc/conda
+**/etc/.tmp
 **/etc/.ccache
 **/etc/.bash_aliases
 **/etc/settings/.config/*

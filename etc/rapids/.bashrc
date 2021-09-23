@@ -202,3 +202,6 @@ bind '"\e[A": history-search-backward'
 
 # git completion
 source ~/.git-completion.bash
+
+# dask workspace
+export DASK_TEMPORARY_DIRECTORY="$COMPOSE_HOME/etc/.tmp"
