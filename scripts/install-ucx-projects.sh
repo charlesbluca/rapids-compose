@@ -5,8 +5,8 @@ set -e
 # ucx with IB and NVLINK
 cd ~/ucx
 git checkout v1.11.1
+git clean -xdf
 ./autogen.sh
-rm -rf build/
 mkdir build
 cd build
 ../contrib/configure-release \
@@ -18,5 +18,5 @@ make -j install
 
 # ucx-py
 cd ~/ucx-py
-python setup.py build_ext --inplace
-pip install -v -e .
+git clean -xdf
+UCXPY_DISABLE_HWLOC=1 pip install -v -e .
