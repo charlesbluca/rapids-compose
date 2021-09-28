@@ -104,7 +104,20 @@ services:
       - *compose
       - *cugraph
       - *cuspatial
+      - *dask
+      - *distributed
+      - *dask_sql
+      - *dask_cuda
+      - *dask_build_environment
+      - *gpuci_scripts
+      - *ucx
+      - *ucx-py
+      - *condarc
       - *bashrc
+      - *bash_it
+      - *gitconfig
+      - *gitcompletion
+      - *ssh
       - *colornvcc
       - *dot_colornvccrc
       - *dot_local
