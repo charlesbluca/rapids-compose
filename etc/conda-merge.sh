@@ -22,6 +22,7 @@ dependencies:
 - python=${PYTHON_VERSION}
 - pip:
   - ptvsd
+  - yaml-axis-parser
 EOF
 
 # UCX source requirements
