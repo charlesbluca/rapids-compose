@@ -66,8 +66,6 @@ services:
       - &distributed "${RAPIDS_HOME:-$PWD}/distributed:${RAPIDS_HOME:-$PWD}/distributed"
       - &dask_sql "${RAPIDS_HOME:-$PWD}/dask-sql:${RAPIDS_HOME:-$PWD}/dask-sql"
       - &dask_cuda "${RAPIDS_HOME:-$PWD}/dask-cuda:${RAPIDS_HOME:-$PWD}/dask-cuda"
-      - &dask_build_environment "${RAPIDS_HOME:-$PWD}/dask-build-environment:${RAPIDS_HOME:-$PWD}/dask-build-environment"
-      - &gpuci_scripts "${RAPIDS_HOME:-$PWD}/gpuci-scripts:${RAPIDS_HOME:-$PWD}/gpuci-scripts"
       - &ucx "${RAPIDS_HOME:-$PWD}/ucx:${RAPIDS_HOME:-$PWD}/ucx"
       - &ucx-py "${RAPIDS_HOME:-$PWD}/ucx-py:${RAPIDS_HOME:-$PWD}/ucx-py"
       - &condarc "${COMPOSE_HOME:-$PWD/compose}/etc/rapids/.condarc:${RAPIDS_HOME:-$PWD}/.condarc"

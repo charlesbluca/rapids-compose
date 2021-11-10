@@ -16,8 +16,6 @@ CODE_REPOS="${CODE_REPOS:-rmm
                           distributed 
                           dask-sql 
                           dask-cuda 
-                          dask-build-environment 
-                          gpuci-scripts 
                           ucx 
                           ucx-py}"
 ALL_REPOS="${ALL_REPOS:-$CODE_REPOS notebooks-contrib}"

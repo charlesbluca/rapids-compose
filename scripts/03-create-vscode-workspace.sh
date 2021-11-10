@@ -109,14 +109,6 @@ cat << EOF
             "path": "dask-cuda"
         },
         {
-            "name": "dask-build-environment",
-            "path": "dask-build-environment"
-        },
-        {
-            "name": "gpuci-scripts",
-            "path": "gpuci-scripts"
-        },
-        {
             "name": "ucx",
             "path": "ucx"
         },

@@ -17,8 +17,6 @@ RAPIDS_REPOS="${RAPIDS_REPOS:-rmm
 					          cugraph
 					          cuspatial
 					          dask-cuda
-					          dask-build-environment
-					          gpuci-scripts
 					          ucx-py}"
 DASK_REPOS="${DASK_REPOS:-dask distributed}"
 DASK_CONTRIB_REPOS="${DASK_CONTRIB_REPOS:-dask-sql}"

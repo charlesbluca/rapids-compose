@@ -140,8 +140,6 @@ init:
 					     cugraph \
 					     cuspatial \
 					     dask-cuda \
-					     dask-build-environment \
-					     gpuci-scripts \
 					     ucx-py" && \
 	export DASK_REPOS="dask distributed" && \
 	export DASK_CONTRIB_REPOS="dask-sql" && \
