@@ -357,11 +357,11 @@ build-cudf-cpp() {
 export -f build-cudf-cpp;
 
 build-cudf-java() {
-    CUDF_JNI_HOME="$CUDF_HOME/java/src/main/native";
-    CUDF_CPP_BUILD_DIR="$(find-cpp-build-home $CUDF_HOME)"
     config_args="$@"
     update-environment-variables $@ >/dev/null;
     config_args=$(echo $(echo "$config_args"));
+    CUDF_JNI_HOME="$CUDF_HOME/java/src/main/native";
+    CUDF_CPP_BUILD_DIR="$(find-cpp-build-home $CUDF_HOME)"
     (
         cd "$CUDF_HOME/java";
         mkdir -p "$CUDF_JNI_ROOT_ABS";
@@ -369,6 +369,8 @@ build-cudf-java() {
 
         export CONDA_PREFIX_="$CONDA_PREFIX";
         unset CONDA_PREFIX;
+
+        export CUDF_CPP_BUILD_DIR;
 
         mvn package \
             ${config_args} \
@@ -418,6 +420,7 @@ configure-cuml-cpp() {
                  -D rmm_ROOT=${RMM_ROOT}
                  -D raft_ROOT=${RAFT_ROOT}
                  -D BUILD_CUML_MG_TESTS=OFF
+                 -D DISABLE_FORCE_CLONE_RAFT=ON
                  -D BUILD_CUML_TESTS=${BUILD_TESTS:-OFF}
                  -D BUILD_PRIMS_TESTS=${BUILD_TESTS:-OFF}
                  -D BUILD_CUML_BENCH=${BUILD_BENCHMARKS:-OFF}
@@ -661,13 +664,13 @@ export -f clean-cuml-python;
 clean-cugraph-python() {
     update-environment-variables $@ >/dev/null;
     print-heading "Cleaning cugraph";
-    rm -rf "$CUGRAPH_HOME/python/dist" \
-           "$CUGRAPH_HOME/python/build" \
-           "$CUGRAPH_HOME/python/.hypothesis" \
-           "$CUGRAPH_HOME/python/cugraph/raft" \
-           "$CUGRAPH_HOME/python/.pytest_cache" \
-           "$CUGRAPH_HOME/python/_external_repositories" \
-           "$CUGRAPH_HOME/python/dask-worker-space";
+    rm -rf "$CUGRAPH_HOME/python/cugraph/dist" \
+           "$CUGRAPH_HOME/python/cugraph/build" \
+           "$CUGRAPH_HOME/python/cugraph/.hypothesis" \
+           "$CUGRAPH_HOME/python/cugraph/cugraph/raft" \
+           "$CUGRAPH_HOME/python/cugraph/.pytest_cache" \
+           "$CUGRAPH_HOME/python/cugraph/_external_repositories" \
+           "$CUGRAPH_HOME/python/cugraph/dask-worker-space";
     find "$CUGRAPH_HOME" -type f -name '*.pyc' -delete;
     find "$CUGRAPH_HOME" -type d -name '__pycache__' -delete;
     find "$CUGRAPH_HOME/python/cugraph" -type f -name '*.so' -delete;
@@ -916,7 +919,7 @@ test-rmm-python() {
 export -f test-rmm-python;
 
 test-cudf-python() {
-    test-python "$CUDF_HOME/python/cudf" $@;
+    test-python "$CUDF_HOME/python/cudf/cudf/tests" $@;
 }
 
 export -f test-cudf-python;
@@ -940,7 +943,7 @@ test-cuml-python() {
 export -f test-cuml-python;
 
 test-cugraph-python() {
-    test-python "$CUGRAPH_HOME/python" $@;
+    test-python "$CUGRAPH_HOME/python/cugraph" $@;
 }
 
 export -f test-cugraph-python;
@@ -968,6 +971,8 @@ configure-cpp() {
         export CONDA_PREFIX_="$CONDA_PREFIX";
         unset CONDA_PREFIX;
 
+        export CCACHE_BASEDIR="$(realpath -m $BINARY_DIR)"
+
         cmake -G Ninja \
               -S "$SOURCE_DIR" \
               -B "$BINARY_DIR" \
@@ -977,7 +982,12 @@ configure-cpp() {
               -D CMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
               -D CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
               -D CMAKE_CUDA_ARCHITECTURES="${CUDAARCHS:-}" \
+              -D CMAKE_CUDA_FLAGS="$CMAKE_CUDA_FLAGS" \
+              -D CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+              -D CMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
               ${D_CMAKE_ARGS};
+
+        unset CCACHE_BASEDIR;
 
         fix-nvcc-clangd-compile-commands "$SOURCE_DIR" "$BINARY_DIR";
 
@@ -992,8 +1002,11 @@ build-cpp() {
     BUILD_TARGETS="${2:-all}";
     (
         set -Eeo pipefail;
+        export CCACHE_BASEDIR="$(find-cpp-build-home $1)";
+        export CCACHE_BASEDIR="$(realpath -m $CCACHE_BASEDIR)"
         time cmake --build "$(find-cpp-build-home $1)" -- -j${PARALLEL_LEVEL} $BUILD_TARGETS;
         [ $? == 0 ] && [[ "$(cpp-build-type)" == "release" || -z "$(create-cpp-launch-json $1)" || true ]];
+        unset CCACHE_BASEDIR;
     )
 }
 
@@ -1150,8 +1163,7 @@ set-gcc-version() {
         echo "rapids" | sudo -S ln -s -f "$(which ccache)" "/usr/local/bin/gcc-$GCC_VERSION"           >/dev/null 2>&1;
         echo "rapids" | sudo -S ln -s -f "$(which ccache)" "/usr/local/bin/g++-$CXX_VERSION"           >/dev/null 2>&1;
     else
-        # echo "rapids" | sudo -S rm "/usr/local/bin/nvcc" || true                                       >/dev/null 2>&1;
-        echo "rapids" | sudo -S ln -s -f "$CUDA_HOME/bin/nvcc" "/usr/local/bin/nvcc"                   >/dev/null 2>&1;
+        echo "rapids" | sudo -S ln -s -f "/usr/bin/nvcc" "/usr/local/bin/nvcc"                         >/dev/null 2>&1;
         echo "rapids" | sudo -S ln -s -f "/usr/bin/gcc" "/usr/local/bin/gcc"                           >/dev/null 2>&1;
         echo "rapids" | sudo -S ln -s -f "/usr/bin/g++" "/usr/local/bin/g++"                           >/dev/null 2>&1;
         echo "rapids" | sudo -S ln -s -f "/usr/bin/gcc-$GCC_VERSION" "/usr/local/bin/gcc-$GCC_VERSION" >/dev/null 2>&1;
@@ -1322,9 +1334,7 @@ fix-nvcc-clangd-compile-commands() {
         CLANG_CUDA_OPTIONS="-x cuda $CLANG_CUDA_OPTIONS";
         ALLOWED_WARNINGS=$(echo $(echo '
             -Werror=sign-compare
-            -Wno-unknown-pragmas
-            -Wno-c++17-extensions
-            -Wno-unevaluated-expression'));
+            -Wno-unknown-pragmas'));
 
         REPLACE_DIAGNOSTIC_COLORS="-Xcompiler=-fdiagnostics-color=always/"
         REPLACE_CROSS_EXECUTION_SPACE_CALL="-Wno-unevaluated-expression=cross-execution-space-call/";
@@ -1588,10 +1598,10 @@ update-environment-variables() {
     export CUGRAPH_ROOT_ABS="$CUGRAPH_HOME/cpp/$(cpp-build-dir $CUGRAPH_HOME)"
     export CUSPATIAL_ROOT_ABS="$CUSPATIAL_HOME/cpp/$(cpp-build-dir $CUSPATIAL_HOME)"
 
-    export CMAKE_C_FLAGS="${CFLAGS:-}"
-    export CMAKE_CXX_FLAGS="${CXXFLAGS:-}"
-    export CMAKE_CUDA_FLAGS="${CUDAFLAGS:-}"
     export CUDAARCHS="${CUDAARCHS:-${CMAKE_CUDA_ARCHITECTURES:-}}"
+    export CMAKE_C_FLAGS="${CFLAGS:+$CFLAGS }-fdiagnostics-color=always"
+    export CMAKE_CXX_FLAGS="${CXXFLAGS:+$CXXFLAGS }-fdiagnostics-color=always"
+    export CMAKE_CUDA_FLAGS="${CUDAFLAGS:+$CUDAFLAGS }-Xcompiler=-fdiagnostics-color=always"
 
     if [[ "${DISABLE_DEPRECATION_WARNINGS:-ON}" == "ON" ]]; then
         export DISABLE_DEPRECATION_WARNINGS=ON

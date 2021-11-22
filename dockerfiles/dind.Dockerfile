@@ -25,7 +25,7 @@ RUN set -x && \
     apk add --no-cache zlib libgcc bash jq && \
     # Install docker-compose.
     # https://docs.docker.com/compose/install/
-    DOCKER_COMPOSE_URL=https://github.com$(wget -q -O- https://github.com/docker/compose/releases/latest \
+    DOCKER_COMPOSE_URL=https://github.com$(wget -q -O- https://github.com/docker/compose/releases/tag/1.29.2 \
         | grep -Eo 'href="[^"]+docker-compose-Linux-x86_64' \
         | sed 's/^href="//' \
         | head -n1) && \
@@ -52,7 +52,8 @@ ENV NOTEBOOKS_CONTRIB_HOME="$RAPIDS_HOME/notebooks-contrib"
 ENV _UID=1000
 ENV _GID=1000
 
-ENV CUDA_VERSION=11.2.0
+ENV BASE_CONTAINER=nvidia/cuda
+ENV CUDA_VERSION=11.5.0
 ENV LINUX_VERSION=ubuntu18.04
 
 ENV PYTHON_VERSION=3.7

@@ -98,21 +98,20 @@ find-env-file-version() {
     done
 }
 
-replace-env-cuda-toolkit-version() {
+replace-env-versions() {
     VER=$(find-env-file-version $1)
     cat "$RAPIDS_HOME/$1/conda/environments/$1_dev_cuda$VER.yml" \
   | sed -r "s/cudatoolkit=$VER/cudatoolkit=$CUDA_TOOLKIT_VERSION/g" \
-  | sed -r "s!rapidsai/label/cuda$VER!rapidsai/label/cuda$CUDA_TOOLKIT_VERSION!g"
+  | sed -r "s!rapidsai/label/cuda$VER!rapidsai/label/cuda$CUDA_TOOLKIT_VERSION!g" \
+  | sed -r "s/- python[<>=,\.0-9]*$/- python=${PYTHON_VERSION}/g"
 }
 
 YMLS=()
-if [ $(should-build-rmm)       == true ]; then echo -e "$(replace-env-cuda-toolkit-version rmm)"       > rmm.yml       && YMLS+=(rmm.yml);       fi;
-if [ $(should-build-cudf)      == true ]; then echo -e "$(replace-env-cuda-toolkit-version cudf)"      > cudf.yml      && YMLS+=(cudf.yml);      fi;
-if [ $(should-build-cuml)      == true ]; then echo -e "$(replace-env-cuda-toolkit-version cuml)"      > cuml.yml      && YMLS+=(cuml.yml);      fi;
-if [ $(should-build-cugraph)   == true ]; then echo -e "$(replace-env-cuda-toolkit-version cugraph)"   > cugraph.yml   && YMLS+=(cugraph.yml);   fi;
-if [ $(should-build-cuspatial) == true ]; then echo -e "$(replace-env-cuda-toolkit-version cuspatial)" > cuspatial.yml && YMLS+=(cuspatial.yml); fi;
-YMLS+=(dask-sql.yml)  # workaround until https://github.com/dask-contrib/dask-sql/pull/238 is merged
-YMLS+=(ucx.yml)
+if [ $(should-build-rmm)       == true ]; then echo -e "$(replace-env-versions rmm)"       > rmm.yml       && YMLS+=(rmm.yml);       fi;
+if [ $(should-build-cudf)      == true ]; then echo -e "$(replace-env-versions cudf)"      > cudf.yml      && YMLS+=(cudf.yml);      fi;
+if [ $(should-build-cuml)      == true ]; then echo -e "$(replace-env-versions cuml)"      > cuml.yml      && YMLS+=(cuml.yml);      fi;
+if [ $(should-build-cugraph)   == true ]; then echo -e "$(replace-env-versions cugraph)"   > cugraph.yml   && YMLS+=(cugraph.yml);   fi;
+if [ $(should-build-cuspatial) == true ]; then echo -e "$(replace-env-versions cuspatial)" > cuspatial.yml && YMLS+=(cuspatial.yml); fi;
 YMLS+=(rapids.yml)
 conda-merge ${YMLS[@]} > merged.yml
 
@@ -120,6 +119,7 @@ conda-merge ${YMLS[@]} > merged.yml
 cat merged.yml \
   | grep -v -P '^(.*?)\-(.*?)(rapids-build-env|rapids-notebook-env|rapids-doc-env|rapids-pytest-benchmark)(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(rmm|cudf|dask-cudf|cugraph|cuspatial|cuxfilter|dask-cuda|ucx|ucx-py)(.*?)$' \
+  | grep -v -P '^(.*?)\-(.*?)(\.git\@[^(main|master)])(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(cmake=)(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(defaults)(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(isort=5.7.0)(.*?)$' \
