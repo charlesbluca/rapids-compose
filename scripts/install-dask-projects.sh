@@ -4,14 +4,14 @@ set -e
 
 # dask and distributed
 cd ~/dask
-pip install -e .
+pip install --no-deps -e .
 cd ~/distributed
-pip install -e .
+pip install --no-deps -e .
 
 # dask-sql
 cd ~/dask-sql
-pip install -e ".[dev]"
 python setup.py java
+pip install --no-deps -e ".[dev]"
 
 # dask-cuda
 cd ~/dask-cuda
