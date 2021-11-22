@@ -14,7 +14,7 @@ cd build
 --with-cuda=$CUDA_HOME \
 --enable-mt \
 CPPFLAGS="-I$CUDA_HOME/include"
-make -j install
+make -j$PARALLEL_LEVEL install
 
 # ucx-py
 cd ~/ucx-py
