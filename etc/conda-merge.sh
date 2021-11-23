@@ -40,51 +40,8 @@ dependencies:
 - cython>=0.29.14,<3.0.0a0
 EOF
 
-# workaround until https://github.com/dask-contrib/dask-sql/pull/238 is merged
-cat << EOF > dask-sql.yml
-name: dask-sql
-channels:
-- conda-forge
-dependencies:
-- adagio>=0.2.3
-- antlr4-python3-runtime>=4.9.2
-- black=19.10b0
-- ciso8601>=2.2.0
-- dask-ml>=2021.11.16
-- dask>=2.19.0,!=2021.3.0  # dask 2021.3.0 makes dask-ml fail (see https://github.com/dask/dask-ml/issues/803)
-- fastapi>=0.61.1
-- fs>=2.4.11
-- intake>=0.6.0
-- isort=5.7.0
-- jpype1>=1.0.2
-- lightgbm>=3.2.1
-- maven>=3.6.0
-- mlflow>=1.19.0
-- mock>=4.0.3
-- nest-asyncio>=1.4.3
-- openjdk>=8
-- pandas>=1.0.0  # below 1.0, there were no nullable ext. types
-- pip=20.2.4
-- pre-commit>=2.11.1
-- prompt_toolkit>=3.0.8
-- psycopg2>=2.9.1
-- pyarrow>=0.15.1
-- pygments>=2.7.1
-- pyhive>=0.6.4
-- pytest-cov>=2.10.1
-- pytest-xdist
-- pytest>=6.0.1
-- python=3.8
-- scikit-learn>=0.24.2
-- sphinx>=3.2.1
-- tpot>=0.11.7
-- triad>=0.5.4
-- tzlocal>=2.1
-- uvicorn>=0.11.3
-- pip:
-  - fugue[sql]>=0.5.3
-EOF
-
+# manually grab dask-sql requirements
+wget https://raw.githubusercontent.com/dask-contrib/dask-sql/main/continuous_integration/environment-3.8-jdk11-dev.yaml -O dask-sql.yml
 
 CUDA_TOOLKIT_VERSION=${CONDA_CUDA_TOOLKIT_VERSION:-$CUDA_SHORT_VERSION};
 
@@ -112,6 +69,8 @@ if [ $(should-build-cudf)      == true ]; then echo -e "$(replace-env-versions c
 if [ $(should-build-cuml)      == true ]; then echo -e "$(replace-env-versions cuml)"      > cuml.yml      && YMLS+=(cuml.yml);      fi;
 if [ $(should-build-cugraph)   == true ]; then echo -e "$(replace-env-versions cugraph)"   > cugraph.yml   && YMLS+=(cugraph.yml);   fi;
 if [ $(should-build-cuspatial) == true ]; then echo -e "$(replace-env-versions cuspatial)" > cuspatial.yml && YMLS+=(cuspatial.yml); fi;
+YMLS+=(dask-sql.yml)
+YMLS+=(ucx.yml)
 YMLS+=(rapids.yml)
 conda-merge ${YMLS[@]} > merged.yml
 
