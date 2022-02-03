@@ -21,7 +21,7 @@ dependencies:
 - pytest-xdist
 - python=${PYTHON_VERSION}
 - pip:
-  - ptvsd
+  - debugpy
   - yaml-axis-parser
 EOF
 

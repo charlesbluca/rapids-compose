@@ -129,7 +129,7 @@
 # Commands to run each project's pytests:
 #
 # Note: These commands automatically change into the correct directory before executing `pytest`.
-# Note: Pass --debug to use with the VSCode debugger `ptvsd`. All other arguments are forwarded to pytest.
+# Note: Pass --debug to use with the VSCode debugger `debugpy`. All other arguments are forwarded to pytest.
 # Note: Arguments that end in '.py' are assumed to be pytest files used to reduce the number of tests
 #       collected on startup by pytest. These arguments will be expanded out to their full paths relative
 #       to the directory where pytests is run.
@@ -143,7 +143,7 @@
 # Usage:
 # test-cudf-python -n <num_cores>                               - Run all pytests in parallel with `pytest-xdist`
 # test-cudf-python -v -x -k 'a_test_function_name'              - Run all tests named 'a_test_function_name', be verbose, and exit on first fail
-# test-cudf-python -v -x -k 'a_test_function_name' --debug      - Run all tests named 'a_test_function_name', and start ptvsd for VSCode debugging
+# test-cudf-python -v -x -k 'a_test_function_name' --debug      - Run all tests named 'a_test_function_name', and start debugpy for VSCode debugging
 # test-cudf-python -v -x -k 'test_a or test_b' foo/test_file.py - Run all tests named 'test_a' or 'test_b' in file paths matching foo/test_file.py
 #
 ###
@@ -420,7 +420,6 @@ configure-cuml-cpp() {
                  -D rmm_ROOT=${RMM_ROOT}
                  -D raft_ROOT=${RAFT_ROOT}
                  -D BUILD_CUML_MG_TESTS=OFF
-                 -D DISABLE_FORCE_CLONE_RAFT=ON
                  -D BUILD_CUML_TESTS=${BUILD_TESTS:-OFF}
                  -D BUILD_PRIMS_TESTS=${BUILD_TESTS:-OFF}
                  -D BUILD_CUML_BENCH=${BUILD_BENCHMARKS:-OFF}
@@ -984,7 +983,6 @@ configure-cpp() {
               -D CMAKE_CUDA_ARCHITECTURES="${CUDAARCHS:-}" \
               -D CMAKE_CUDA_FLAGS="$CMAKE_CUDA_FLAGS" \
               -D CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
-              -D CMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
               ${D_CMAKE_ARGS};
 
         unset CCACHE_BASEDIR;
@@ -1138,11 +1136,11 @@ export -f lint-python;
 
 set-gcc-version() {
     V="${1:-}";
-    if [[ $V != "9" && $V != "10" ]]; then
+    if [[ "$V" != "9" && "$V" != "10" && "$V" != "11" ]]; then
         while true; do
-            read -p "Please select GCC version 9 or 10: " V </dev/tty
+            read -p "Please select GCC version 9, 10, or 11: " V </dev/tty
             if [[ $V != "9" && $V != "10" ]]; then
-                >&2 echo "Invalid GCC version, please select 9 or 10";
+                >&2 echo "Invalid GCC version, please select 9, 10, or 11";
             else
                 break;
             fi
@@ -1259,7 +1257,7 @@ test-python() {
         if [[ $debug != true ]]; then
             eval "set -x; pytest $args $paths";
         else
-            eval "set -x; python -m ptvsd --host 0.0.0.0 --port 5678 --wait -m pytest $args $paths";
+            eval "set -x; python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m pytest $args $paths";
         fi
     )
 }
