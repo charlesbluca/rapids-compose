@@ -129,6 +129,12 @@ rm -f "$RAPIDS_HOME/cuspatial.yml" || true >/dev/null 2>&1;
 rm -f "$RAPIDS_HOME/rapids.yml"    || true >/dev/null 2>&1;
 rm -f "$RAPIDS_HOME/notebooks.yml" || true >/dev/null 2>&1;
 
+# remove broken libtinfo and libncursesw
+rm -f "$CONDA_HOME/lib/libtinfo.so.6"                || true >/dev/null 2>&1;
+rm -f "$CONDA_HOME/lib/libncursesw.so.6"             || true >/dev/null 2>&1;
+rm -f "$CONDA_HOME/envs/rapids/lib/libtinfo.so.6"    || true >/dev/null 2>&1;
+rm -f "$CONDA_HOME/envs/rapids/lib/libncursesw.so.6" || true >/dev/null 2>&1;
+
 mkdir -p "$CONDA_HOME/envs/$ENV_NAME/etc/conda/activate.d"
 mkdir -p "$CONDA_HOME/envs/$ENV_NAME/etc/conda/deactivate.d"
 
