@@ -41,7 +41,7 @@ dependencies:
 EOF
 
 # manually grab dask-sql requirements
-wget https://raw.githubusercontent.com/dask-contrib/dask-sql/main/continuous_integration/environment-3.8-jdk11-dev.yaml -O dask-sql.yml
+wget https://raw.githubusercontent.com/dask-contrib/dask-sql/main/continuous_integration/environment-3.9-jdk11-dev.yaml -O dask-sql.yml
 
 CUDA_TOOLKIT_VERSION=${CONDA_CUDA_TOOLKIT_VERSION:-$CUDA_SHORT_VERSION};
 
