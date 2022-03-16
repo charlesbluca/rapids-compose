@@ -10,7 +10,6 @@ pip install --no-deps -e .
 
 # dask-sql
 cd ~/dask-sql
-python setup.py java
 pip install --no-deps -e ".[dev]"
 
 # dask-cuda
