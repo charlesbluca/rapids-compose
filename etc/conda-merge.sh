@@ -77,7 +77,7 @@ conda-merge ${YMLS[@]} > merged.yml
 # Strip out cmake + the rapids packages, and save the combined environment
 cat merged.yml \
   | grep -v -P '^(.*?)\-(.*?)(rapids-build-env|rapids-notebook-env|rapids-doc-env|rapids-pytest-benchmark)(.*?)$' \
-  | grep -v -P '^(.*?)\-(.*?)(rmm|cudf|dask-cudf|cugraph|cuspatial|cuxfilter|dask-cuda|ucx|ucx-py)(.*?)$' \
+  | grep -v -P '^(.*?)\-(.*?)(rmm|cudf|libraft|pyraft|dask-cudf|cugraph|cuspatial|cuxfilter|dask-cuda|ucx|ucx-py)(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(\.git\@[^(main|master)])(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(cmake=)(.*?)$' \
   | grep -v -P '^(.*?)\-(.*?)(defaults)(.*?)$' \
@@ -116,7 +116,6 @@ dependencies:
 - umap-learn
 - pip:
   - graphistry
-  - git+https://github.com/rapidsai/jupyterlab-nvdashboard.git
 EOF
 
 conda-merge rapids.yml notebooks.yml > merged.yml && mv merged.yml notebooks.yml
