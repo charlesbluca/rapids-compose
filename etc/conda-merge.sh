@@ -17,12 +17,24 @@ channels:
 dependencies:
 - cmake>=3.20
 - cmake_setuptools
-- pynvml
 - pytest-xdist
 - python=${PYTHON_VERSION}
 - pip:
   - debugpy
-  - yaml-axis-parser
+EOF
+
+# dask-cuda requirements
+cat << EOF > dask-cuda.yml
+name: ucx
+channels:
+- conda-forge
+dependencies:
+- dask>=2022.03.0
+- distributed>=2022.03.0
+- pynvml>=11.0.0
+- numpy>=1.16.0
+- numba>=0.53.1
+- click==8.0.4
 EOF
 
 # UCX source requirements
@@ -39,9 +51,6 @@ dependencies:
 - setuptools
 - cython>=0.29.14,<3.0.0a0
 EOF
-
-# manually grab dask-sql requirements
-wget https://raw.githubusercontent.com/dask-contrib/dask-sql/main/continuous_integration/environment-3.9-jdk11-dev.yaml -O dask-sql.yml
 
 CUDA_TOOLKIT_VERSION=${CONDA_CUDA_TOOLKIT_VERSION:-$CUDA_SHORT_VERSION};
 
@@ -64,12 +73,16 @@ replace-env-versions() {
 }
 
 YMLS=()
-if [ $(should-build-rmm)       == true ]; then echo -e "$(replace-env-versions rmm)"       > rmm.yml       && YMLS+=(rmm.yml);       fi;
-if [ $(should-build-cudf)      == true ]; then echo -e "$(replace-env-versions cudf)"      > cudf.yml      && YMLS+=(cudf.yml);      fi;
-if [ $(should-build-cuml)      == true ]; then echo -e "$(replace-env-versions cuml)"      > cuml.yml      && YMLS+=(cuml.yml);      fi;
-if [ $(should-build-cugraph)   == true ]; then echo -e "$(replace-env-versions cugraph)"   > cugraph.yml   && YMLS+=(cugraph.yml);   fi;
-if [ $(should-build-cuspatial) == true ]; then echo -e "$(replace-env-versions cuspatial)" > cuspatial.yml && YMLS+=(cuspatial.yml); fi;
-YMLS+=(dask-sql.yml)
+if [ $(should-build-rmm)       == true ]; then echo -e "$(replace-env-versions rmm)"          > rmm.yml         && YMLS+=(rmm.yml);       fi;
+if [ $(should-build-cudf)      == true ]; then echo -e "$(replace-env-versions cudf)"         > cudf.yml        && YMLS+=(cudf.yml);      fi;
+if [ $(should-build-cuml)      == true ]; then echo -e "$(replace-env-versions cuml)"         > cuml.yml        && YMLS+=(cuml.yml);      fi;
+if [ $(should-build-cugraph)   == true ]; then echo -e "$(replace-env-versions cugraph)"      > cugraph.yml     && YMLS+=(cugraph.yml);   fi;
+if [ $(should-build-cuspatial) == true ]; then echo -e "$(replace-env-versions cuspatial)"    > cuspatial.yml   && YMLS+=(cuspatial.yml); fi;
+# dask requirements
+cat "$RAPIDS_HOME/dask/continuous_integration/environment-$PYTHON_VERSION.yaml"               > dask.yml        && YMLS+=(dask.yml)
+cat "$RAPIDS_HOME/distributed/continuous_integration/environment-$PYTHON_VERSION.yaml"        > distributed.yml && YMLS+=(distributed.yml)
+cat "$RAPIDS_HOME/dask-sql/continuous_integration/environment-$PYTHON_VERSION-jdk11-dev.yaml" > dask-sql.yml    && YMLS+=(dask-sql.yml)
+YMLS+=(dask-cuda.yml)
 YMLS+=(ucx.yml)
 YMLS+=(rapids.yml)
 conda-merge ${YMLS[@]} > merged.yml

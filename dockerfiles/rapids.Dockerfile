@@ -10,9 +10,7 @@ ARG CUDA_SHORT_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN echo 'Acquire::HTTP::Proxy "http://172.17.0.1:3142";' >> /etc/apt/apt.conf.d/01proxy \
- && echo 'Acquire::HTTPS::Proxy "false";' >> /etc/apt/apt.conf.d/01proxy \
- && apt update \
+RUN apt update \
  && apt install --no-install-recommends -y \
     pkg-config apt-utils apt-transport-https software-properties-common ca-certificates \
  && add-apt-repository -y ppa:git-core/ppa \
