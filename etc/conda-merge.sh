@@ -52,6 +52,17 @@ dependencies:
 - cython>=0.29.14,<3.0.0a0
 EOF
 
+# dask-sql datafusion requirements
+cat << EOF > datafusion.yml
+name: datafusion
+channels:
+- conda-forge
+dependencies:
+- maturin>=0.12.8
+- setuptools-rust>=1.1.2
+- rust>=1.60.0
+EOF
+
 CUDA_TOOLKIT_VERSION=${CONDA_CUDA_TOOLKIT_VERSION:-$CUDA_SHORT_VERSION};
 
 find-env-file-version() {
@@ -85,6 +96,7 @@ cat "$RAPIDS_HOME/distributed/continuous_integration/environment-$PYTHON_VERSION
 cat "$RAPIDS_HOME/dask-sql/continuous_integration/environment-$PYTHON_VERSION-jdk11-dev.yaml" > dask-sql.yml    && YMLS+=(dask-sql.yml)
 YMLS+=(dask-cuda.yml)
 YMLS+=(ucx.yml)
+YMLS+=(datafusion.yml)
 YMLS+=(rapids.yml)
 conda-merge ${YMLS[@]} > merged.yml
 
